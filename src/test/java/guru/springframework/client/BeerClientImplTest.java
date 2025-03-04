@@ -15,10 +15,22 @@ class BeerClientImplTest {
     BeerClient beerClient;
 
     @Test
-    void testListBeers() {
+    void testGetMapBeer() {
         AtomicBoolean atomicBoolean = new AtomicBoolean(false);
 
-        beerClient.listBeer().subscribe(response -> {
+        beerClient.getMapBeer().subscribe(response -> {
+            System.out.println(response);
+            atomicBoolean.set(true);
+        });
+
+        await().untilTrue(atomicBoolean);
+    }
+
+    @Test
+    void testGetListBeer() {
+        AtomicBoolean atomicBoolean = new AtomicBoolean(false);
+
+        beerClient.getListBeer().subscribe(response -> {
             System.out.println(response);
             atomicBoolean.set(true);
         });
