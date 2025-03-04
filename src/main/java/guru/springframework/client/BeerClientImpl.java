@@ -8,6 +8,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 public class BeerClientImpl implements BeerClient {
@@ -22,18 +23,20 @@ public class BeerClientImpl implements BeerClient {
 
     @Override
     public Mono<BeerDTO> createBeer(BeerDTO beerDTO) {
-        // 1. Inizia una richiesta POST al percorso definito da BEER_PATH.
-        // 2. Imposta il corpo della richiesta con l'oggetto beerDTO, convertendolo in un Mono<BeerDTO>.
-        // 3. Esegue la richiesta e recupera la risposta sotto forma di ResponseEntity<Void> perché ci interessano l`header e lo status della risposta, ma non il body.
-        // 4. Utilizza flatMap per estrarre l`header "Location" dalla risposta.
-        // 5. Estrae l'ID della birra dal percorso "Location" dividendo l`URL dall'ultimo "/".
-        // 6. Utilizza flatMap per recuperare la birra completa (Mono<BeerDTO>) tramite l'ID estratto, chiamando il metodo getBeerById.
+        /* 1. Inizia una richiesta POST al percorso definito da BEER_PATH.
+           2. Imposta il corpo della richiesta con l'oggetto beerDTO, convertendolo in un Mono<BeerDTO>.
+           3. Esegue la richiesta e recupera la risposta sotto forma di ResponseEntity<Void> perché ci interessano l`header e lo status della risposta, ma non il body.
+           4. Utilizza flatMap per estrarre il primo valore dall`header "Location" dalla risposta. L`header non può essere null.
+           5. Estrae l'ID della birra dal percorso "Location" dividendo l`URL dall'ultimo "/".
+           6. Utilizza flatMap per recuperare la birra completa (Mono<BeerDTO>) tramite l'ID estratto, chiamando il metodo getBeerById.
+           7. Gestisce la NullPointerException che si potrebbe generare in caso di header "Location" mancante.*/ // Spiegazione
         return webClient.post().uri(BEER_PATH)
                 .body(Mono.just(beerDTO), BeerDTO.class)
                 .retrieve().toBodilessEntity()
-                .flatMap(voidResponseEntity -> Mono.just(voidResponseEntity.getHeaders().get("Location").getFirst()))
+                .flatMap(voidResponseEntity -> Mono.just(Objects.requireNonNull(voidResponseEntity.getHeaders().get("Location")).getFirst()))
                 .map(path -> path.split("/")[path.split("/").length - 1])
-                .flatMap(this::getBeerById);
+                .flatMap(this::getBeerById)
+                .onErrorResume(NullPointerException.class, throwable -> Mono.error(new RuntimeException("Header 'Location' not found")));
     }
 
     @Override
