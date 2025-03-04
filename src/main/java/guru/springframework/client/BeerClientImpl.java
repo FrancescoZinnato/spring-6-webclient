@@ -22,6 +22,14 @@ public class BeerClientImpl implements BeerClient {
     }
 
     @Override
+    public Mono<BeerDTO> updateBeer(BeerDTO beerDTO) {
+        return webClient.put().uri(uriBuilder -> uriBuilder.path(BEER_PATH_ID).build(beerDTO.getId()))
+                .body(Mono.just(beerDTO), BeerDTO.class)
+                .retrieve().toBodilessEntity()
+                .flatMap(voidResponseEntity -> getBeerById(beerDTO.getId()));
+    }
+
+    @Override
     public Mono<BeerDTO> createBeer(BeerDTO beerDTO) {
         /* 1. Inizia una richiesta POST al percorso definito da BEER_PATH.
            2. Imposta il corpo della richiesta con l'oggetto beerDTO, convertendolo in un Mono<BeerDTO>.
