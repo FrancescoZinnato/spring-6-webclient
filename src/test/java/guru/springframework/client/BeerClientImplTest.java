@@ -15,10 +15,22 @@ class BeerClientImplTest {
     BeerClient beerClient;
 
     @Test
-    void testGetBeerJsonNode() {
+    void testGetListBeerDTOs() {
         AtomicBoolean atomicBoolean = new AtomicBoolean(false);
 
-        beerClient.getBeerJsonNode().subscribe(jsonNode -> {
+        beerClient.getListBeerDTOs().subscribe(beerDTO -> {
+            System.out.println(beerDTO.getBeerName());
+            atomicBoolean.set(true);
+        });
+
+        await().untilTrue(atomicBoolean);
+    }
+
+    @Test
+    void testGetBeersJsonNode() {
+        AtomicBoolean atomicBoolean = new AtomicBoolean(false);
+
+        beerClient.getBeersJsonNode().subscribe(jsonNode -> {
             System.out.println(jsonNode.toPrettyString());
             atomicBoolean.set(true);
         });
@@ -27,10 +39,10 @@ class BeerClientImplTest {
     }
 
     @Test
-    void testGetMapBeer() {
+    void testGetMapBeers() {
         AtomicBoolean atomicBoolean = new AtomicBoolean(false);
 
-        beerClient.getMapBeer().subscribe(response -> {
+        beerClient.getMapBeers().subscribe(response -> {
             System.out.println(response);
             atomicBoolean.set(true);
         });
@@ -39,10 +51,10 @@ class BeerClientImplTest {
     }
 
     @Test
-    void testGetListBeer() {
+    void testGetListBeers() {
         AtomicBoolean atomicBoolean = new AtomicBoolean(false);
 
-        beerClient.getListBeer().subscribe(response -> {
+        beerClient.getListBeers().subscribe(response -> {
             System.out.println(response);
             atomicBoolean.set(true);
         });
