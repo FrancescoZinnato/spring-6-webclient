@@ -1,7 +1,10 @@
 package guru.springframework.client;
 
 import guru.springframework.model.BeerDTO;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -11,10 +14,58 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static org.awaitility.Awaitility.await;
 
 @SpringBootTest
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class BeerClientImplTest {
 
     @Autowired
     BeerClient beerClient;
+
+    @Test
+    @Order(999)
+    void testDeleteBeer() {
+        AtomicBoolean atomicBoolean = new AtomicBoolean(false);
+
+        beerClient.getListBeerDTOs().next()
+                .flatMap(beerDTO -> beerClient.deleteBeerById(beerDTO.getId()))
+                .doOnSuccess(beerDTO -> atomicBoolean.set(true))
+                .subscribe();
+
+        await().untilTrue(atomicBoolean);
+    }
+/*
+    @Test
+    void testPatchBeer() {
+        final String NAME = "Void Plague";
+        final String STYLE = "APA";
+
+        AtomicBoolean atomicBoolean = new AtomicBoolean(false);
+
+        beerClient.getListBeerDTOs().next()
+                .map(dto -> BeerDTO.builder().beerName(NAME).beerStyle(STYLE).build())
+                .flatMap(beerDTO -> beerClient.patchBeer(beerDTO))
+                .subscribe(patchedBeer -> {
+                    System.out.println("patchedBeer: \n" + patchedBeer);
+                    atomicBoolean.set(true);
+                });
+
+        await().untilTrue(atomicBoolean);
+    }
+*/
+    @Test
+    void testPatchBeerById() {
+        BeerDTO patchDTO = BeerDTO.builder().beerName("Mind Sear").beerStyle("H-IPA").build();
+
+        AtomicBoolean atomicBoolean = new AtomicBoolean(false);
+
+        beerClient.getListBeerDTOs().next()
+                .flatMap(beerDTO -> beerClient.patchBeerById(beerDTO.getId(), patchDTO))
+                .subscribe(patchedBeer -> {
+                    System.out.println("patchedBeer: \n" + patchedBeer);
+                    atomicBoolean.set(true);
+                });
+
+        await().untilTrue(atomicBoolean);
+    }
 
     @Test
     void testUpdateBeer() {
